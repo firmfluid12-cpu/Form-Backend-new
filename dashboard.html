@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Firmfluid Dashboard</title>
+
+<style>
+body {
+  margin:0;
+  font-family:Arial;
+  background:#f5f6fa;
+}
+
+/* HEADER */
+.header {
+  background:linear-gradient(45deg,#ff0000,#ff4b5c);
+  color:white;
+  padding:15px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.logo-box {
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.logo-box img {
+  width:35px;
+}
+
+.header h2 {
+  margin:0;
+}
+
+/* CONTAINER */
+.container {
+  padding:20px;
+}
+
+/* STATS */
+.stats {
+  display:flex;
+  gap:15px;
+  margin-bottom:20px;
+}
+
+.card {
+  flex:1;
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+  margin:0;
+  color:#555;
+}
+
+.card p {
+  font-size:22px;
+  margin:5px 0 0;
+  font-weight:bold;
+}
+
+/* SEARCH */
+.search {
+  margin-bottom:15px;
+}
+
+.search input {
+  padding:10px;
+  width:250px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+/* TABLE */
+table {
+  width:100%;
+  border-collapse:collapse;
+  background:white;
+  border-radius:10px;
+  overflow:hidden;
+  box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
+
+th {
+  background:#ff0000;
+  color:white;
+  padding:12px;
+}
+
+td {
+  padding:10px;
+}
+
+tr:nth-child(even){
+  background:#f2f2f2;
+}
+
+tr:hover{
+  background:#ffe5e5;
+}
+
+button.delete {
+  background:red;
+  color:white;
+  border:none;
+  padding:5px 10px;
+  border-radius:5px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body style="display:none;">
+
+<!-- PASSWORD SCRIPT -->
+<script>
+let pass = prompt("Enter Dashboard Password");
+
+if(pass !== "Firm@2026"){
+  document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;'>Access Denied ❌</h2>";
+} else {
+  document.body.style.display = "block";
+}
+</script>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo-box">
+    <img src="logo.jpeg">
+    <h2>Firmfluid Dashboard</h2>
+  </div>
+  <button onclick="exportData()" style="background:white;color:red;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;">
+    Export
+  </button>
+</div>
+
+<div class="container">
+
+<div class="stats">
+  <div class="card">
+    <h3>Total Leads</h3>
+    <p id="total"></p>
+  </div>
+  <div class="card">
+    <h3>Today Leads</h3>
+    <p id="today"></p>
+  </div>
+</div>
+
+<div class="search">
+  <input type="text" placeholder="Search..." onkeyup="filterData(this.value)">
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>Phone</th>
+<th>Date</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSy...",
+  projectId:"firmfluid-login-system"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let allData=[];
+
+async function loadData(){
+  const snap = await getDocs(collection(db,"leads"));
+  allData=[];
+
+  let todayCount=0;
+  const todayDate=new Date().toDateString();
+
+  snap.forEach(docSnap=>{
+    const d=docSnap.data();
+
+    if(d.time && new Date(d.time.seconds*1000).toDateString()==todayDate){
+      todayCount++;
+    }
+
+    allData.push({
+      id:docSnap.id,
+      ...d
+    });
+  });
+
+  document.getElementById("total").innerText=allData.length;
+  document.getElementById("today").innerText=todayCount;
+
+  render(allData);
+}
+
+function render(data){
+  let html="";
+  data.forEach(d=>{
+    html+=`
+    <tr>
+      <td>${d.name}</td>
+      <td>${d.email}</td>
+      <td>${d.phone}</td>
+      <td>${d.time ? new Date(d.time.seconds*1000).toLocaleString() : "-"}</td>
+      <td><button class="delete" onclick="deleteLead('${d.id}')">Delete</button></td>
+    </tr>`;
+  });
+
+  document.getElementById("tableBody").innerHTML=html;
+}
+
+window.filterData=function(val){
+  val=val.toLowerCase();
+
+  const filtered=allData.filter(d =>
+    d.name.toLowerCase().includes(val) ||
+    d.email.toLowerCase().includes(val)
+  );
+
+  render(filtered);
+}
+
+window.deleteLead=async function(id){
+  if(confirm("Delete lead?")){
+    await deleteDoc(doc(db,"leads",id));
+    loadData();
+  }
+}
+
+window.exportData=function(){
+  let csv="Name,Email,Phone,Date\n";
+
+  allData.forEach(d=>{
+    csv+=`${d.name},${d.email},${d.phone},${d.time ? new Date(d.time.seconds*1000).toLocaleString() : ""}\n`;
+  });
+
+  const blob=new Blob([csv],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="leads.csv";
+  a.click();
+}
+
+loadData();
+
+</script>
+
+</body>
+</html>

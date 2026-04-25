@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Register</title>
+
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background: linear-gradient(135deg,#ff0000 50%, #ffffff 50%);
+}
+
+body::before {
+  content:"";
+  position:absolute;
+  width:300px;
+  height:300px;
+  background:#ff0000;
+  border-radius:50%;
+  top:-100px;
+  left:-100px;
+  opacity:0.3;
+}
+
+body::after {
+  content:"";
+  position:absolute;
+  width:300px;
+  height:300px;
+  background:#ff0000;
+  border-radius:50%;
+  bottom:-100px;
+  right:-100px;
+  opacity:0.3;
+}
+
+.card {
+  position:relative;
+  z-index:2;
+  background:white;
+  padding:30px;
+  border-radius:20px;
+  width:340px;
+  text-align:center;
+  box-shadow:0 20px 40px rgba(0,0,0,0.2);
+}
+
+.logo {
+  width:70px;
+  margin-bottom:10px;
+}
+
+.brand {
+  font-weight:bold;
+  font-size:22px;
+}
+.brand span {
+  color:red;
+}
+
+h2 {
+  margin:10px 0;
+}
+
+.sub {
+  color:#777;
+  font-size:14px;
+  margin-bottom:15px;
+}
+
+input {
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:14px;
+}
+
+button {
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+  background:linear-gradient(45deg,#ff0000,#ff4b5c);
+  color:white;
+  font-size:15px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover {
+  transform:scale(1.03);
+}
+
+.otp-row {
+  display:flex;
+  gap:10px;
+}
+
+.otp-row input {
+  flex:1;
+}
+
+.otp-row button {
+  width:120px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<img src="logo.jpeg" class="logo">
+
+<div class="brand">FIRM<span>FLUID</span></div>
+
+<h2>Create Your Account</h2>
+<div class="sub">Fill details to get started</div>
+
+<form onsubmit="saveLead(event)">
+
+<input id="name" name="name" placeholder="Full Name" required>
+<input id="email" name="email" placeholder="Email" required>
+<input id="phone" name="phone" placeholder="Phone Number" required>
+
+<div class="otp-row">
+  <input placeholder="Enter OTP">
+  <button type="button" onclick="alert('OTP sent successfully')">Send</button>
+</div>
+
+<button type="submit">Verify & Register</button>
+
+</form>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSy...", 
+  projectId:"firmfluid-login-system"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.saveLead = async function(e){
+  e.preventDefault();
+
+  let name=document.getElementById("name").value;
+  let email=document.getElementById("email").value;
+  let phone=document.getElementById("phone").value;
+
+  // FIREBASE SAVE
+  await addDoc(collection(db,"leads"),{
+    name,
+    email,
+    phone,
+    time: serverTimestamp()
+  });
+
+  // BACKEND EMAIL
+  await fetch("https://form-backend-bcjj.onrender.com/submit",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({name,email,phone})
+  });
+
+  alert("Registered Successfully 🎉");
+}
+
+</script>
+
+</body>
+</html>
