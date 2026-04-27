@@ -14,33 +14,7 @@ body {
   background: linear-gradient(135deg,#ff0000 50%, #ffffff 50%);
 }
 
-body::before {
-  content:"";
-  position:absolute;
-  width:300px;
-  height:300px;
-  background:#ff0000;
-  border-radius:50%;
-  top:-100px;
-  left:-100px;
-  opacity:0.3;
-}
-
-body::after {
-  content:"";
-  position:absolute;
-  width:300px;
-  height:300px;
-  background:#ff0000;
-  border-radius:50%;
-  bottom:-100px;
-  right:-100px;
-  opacity:0.3;
-}
-
 .card {
-  position:relative;
-  z-index:2;
   background:white;
   padding:30px;
   border-radius:20px;
@@ -58,18 +32,9 @@ body::after {
   font-weight:bold;
   font-size:22px;
 }
+
 .brand span {
   color:red;
-}
-
-h2 {
-  margin:10px 0;
-}
-
-.sub {
-  color:#777;
-  font-size:14px;
-  margin-bottom:15px;
 }
 
 input {
@@ -78,7 +43,7 @@ input {
   margin:8px 0;
   border-radius:10px;
   border:1px solid #ddd;
-  font-size:14px;
+  box-sizing:border-box;
 }
 
 button {
@@ -87,28 +52,28 @@ button {
   margin-top:10px;
   border:none;
   border-radius:10px;
-  background:linear-gradient(45deg,#ff0000,#ff4b5c);
+  background:#ff0000;
   color:white;
-  font-size:15px;
   cursor:pointer;
-  transition:0.3s;
-}
-
-button:hover {
-  transform:scale(1.03);
 }
 
 .otp-row {
   display:flex;
   gap:10px;
+  align-items:center;
 }
 
 .otp-row input {
   flex:1;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  box-sizing:border-box;
 }
 
 .otp-row button {
   width:120px;
+  margin-top:0;
 }
 </style>
 </head>
@@ -118,24 +83,25 @@ button:hover {
 <div class="card">
 
 <img src="logo.jpeg" class="logo">
-
 <div class="brand">FIRM<span>FLUID</span></div>
 
-<h2>Create Your Account</h2>
-<div class="sub">Fill details to get started</div>
+<h2>Create Account</h2>
 
-<form onsubmit="saveLead(event)">
+<form id="form">
 
-<input id="name" name="name" placeholder="Full Name" required>
-<input id="email" name="email" placeholder="Email" required>
-<input id="phone" name="phone" placeholder="Phone Number" required>
+<!-- INPUTS -->
+<input id="name" placeholder="Full Name" required>
+<input id="email" placeholder="Email" required>
+<input id="phone" placeholder="Phone Number" required>
 
+<!-- OTP SECTION (FIXED & VISIBLE) -->
 <div class="otp-row">
-  <input placeholder="Enter OTP">
-  <button type="button" onclick="alert('OTP sent successfully')">Send</button>
+  <input id="otp" placeholder="Enter OTP">
+  <button type="button" onclick="sendOTP()">Send OTP</button>
 </div>
 
-<button type="submit">Verify & Register</button>
+<!-- REGISTER -->
+<button type="submit">Register</button>
 
 </form>
 
@@ -154,14 +120,36 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.saveLead = async function(e){
+let generatedOTP = null;
+
+// SEND OTP
+window.sendOTP = function(){
+  generatedOTP = Math.floor(1000 + Math.random()*9000);
+  alert("OTP sent successfully 📩");
+  console.log("OTP:", generatedOTP);
+}
+
+// FORM SUBMIT
+document.getElementById("form").addEventListener("submit", async function(e){
   e.preventDefault();
 
-  let name=document.getElementById("name").value;
-  let email=document.getElementById("email").value;
-  let phone=document.getElementById("phone").value;
+  let name = document.getElementById("name").value;
+  let email = document.getElementById("email").value;
+  let phone = document.getElementById("phone").value;
+  let otp = document.getElementById("otp").value;
 
-  // FIREBASE SAVE
+  // OTP CHECK
+  if(!generatedOTP){
+    alert("Please send OTP first");
+    return;
+  }
+
+  if(otp != generatedOTP){
+    alert("Invalid OTP ❌");
+    return;
+  }
+
+  // SAVE LEAD (FIREBASE)
   await addDoc(collection(db,"leads"),{
     name,
     email,
@@ -176,8 +164,14 @@ window.saveLead = async function(e){
     body: JSON.stringify({name,email,phone})
   });
 
-  alert("Registered Successfully 🎉");
-}
+  // SUCCESS SCREEN
+  document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;'>Registration Successful 🎉</h2>";
+
+  setTimeout(()=>{
+    window.location.href="https://firmfluid.com";
+  },1500);
+
+});
 
 </script>
 
