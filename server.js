@@ -2,7 +2,13 @@ const express = require("express");
 const cors = require("cors");
 
 const app = express();
-app.use(cors());
+
+// ✅ IMPORTANT FIX
+app.use(cors({
+  origin: "*",   // allow all (for now)
+  methods: ["GET","POST"],
+}));
+
 app.use(express.json());
 
 // TEST ROUTE
@@ -10,7 +16,7 @@ app.get("/", (req,res)=>{
   res.send("Backend Running 🚀");
 });
 
-// SUBMIT (lead capture)
+// SUBMIT
 app.post("/submit",(req,res)=>{
   console.log("Lead:", req.body);
   res.json({success:true});

@@ -65,10 +65,6 @@ button {
 
 .otp-row input {
   flex:1;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #ddd;
-  box-sizing:border-box;
 }
 
 .otp-row button {
@@ -89,18 +85,15 @@ button {
 
 <form id="form">
 
-<!-- INPUTS -->
 <input id="name" placeholder="Full Name" required>
 <input id="email" placeholder="Email" required>
 <input id="phone" placeholder="Phone Number" required>
 
-<!-- OTP SECTION (FIXED & VISIBLE) -->
 <div class="otp-row">
   <input id="otp" placeholder="Enter OTP">
   <button type="button" onclick="sendOTP()">Send OTP</button>
 </div>
 
-<!-- REGISTER -->
 <button type="submit">Register</button>
 
 </form>
@@ -138,38 +131,66 @@ document.getElementById("form").addEventListener("submit", async function(e){
   let phone = document.getElementById("phone").value;
   let otp = document.getElementById("otp").value;
 
-  // OTP CHECK
+  const btn = document.querySelector("button[type='submit']");
+  btn.innerText = "Processing...";
+  btn.disabled = true;
+
   if(!generatedOTP){
     alert("Please send OTP first");
+    btn.innerText = "Register";
+    btn.disabled = false;
     return;
   }
 
   if(otp != generatedOTP){
     alert("Invalid OTP ❌");
+    btn.innerText = "Register";
+    btn.disabled = false;
     return;
   }
 
-  // SAVE LEAD (FIREBASE)
-  await addDoc(collection(db,"leads"),{
-    name,
-    email,
-    phone,
-    time: serverTimestamp()
-  });
+  try {
 
-  // BACKEND EMAIL
-  await fetch("https://form-backend-bcjj.onrender.com/submit",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({name,email,phone})
-  });
+    // SAVE FIREBASE
+    await addDoc(collection(db,"leads"),{
+      name,
+      email,
+      phone,
+      time: serverTimestamp()
+    });
 
-  // SUCCESS SCREEN
-  document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;'>Registration Successful 🎉</h2>";
+    // BACKEND CALL
+    await fetch("https://form-backend-new.onrender.com/submit",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({name,email,phone})
+    });
 
-  setTimeout(()=>{
-    window.location.href="https://firmfluid.com";
-  },1500);
+    // SUCCESS PAGE
+    document.body.innerHTML = `
+      <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;font-family:Arial;text-align:center;">
+        <h1 style="color:green;">Registration Successful 🎉</h1>
+        <p>Redirecting to home...</p>
+
+        <a href="https://firmfluid.com">
+          <button style="padding:12px 20px;background:red;color:white;border:none;border-radius:8px;margin-top:20px;">
+            Go to Home
+          </button>
+        </a>
+      </div>
+    `;
+
+    // AUTO REDIRECT (3 sec)
+    setTimeout(()=>{
+      window.location.href="https://firmfluid.com";
+    },3000);
+
+  } catch(err){
+    alert("Something went wrong ❌");
+    console.error(err);
+    btn.innerText = "Register";
+    btn.disabled = false;
+  }
 
 });
 
