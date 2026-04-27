@@ -113,14 +113,36 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let generatedOTP = null;
+// 🔥 SEND OTP FROM BACKEND
+window.sendOTP = async function(){
 
-// SEND OTP
-window.sendOTP = function(){
-  generatedOTP = Math.floor(1000 + Math.random()*9000);
-  alert("OTP sent successfully 📩");
-  console.log("OTP:", generatedOTP);
-}
+  let email = document.getElementById("email").value;
+
+  if(!email){
+    alert("Enter email first");
+    return;
+  }
+
+  try {
+    const res = await fetch("https://form-backend-new.onrender.com/submit",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ email })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      alert("OTP sent to your email 📩");
+    } else {
+      alert("Failed to send OTP ❌");
+    }
+
+  } catch(err){
+    alert("Server error ❌");
+    console.log(err);
+  }
+};
 
 // FORM SUBMIT
 document.getElementById("form").addEventListener("submit", async function(e){
@@ -129,25 +151,10 @@ document.getElementById("form").addEventListener("submit", async function(e){
   let name = document.getElementById("name").value;
   let email = document.getElementById("email").value;
   let phone = document.getElementById("phone").value;
-  let otp = document.getElementById("otp").value;
 
   const btn = document.querySelector("button[type='submit']");
   btn.innerText = "Processing...";
   btn.disabled = true;
-
-  if(!generatedOTP){
-    alert("Please send OTP first");
-    btn.innerText = "Register";
-    btn.disabled = false;
-    return;
-  }
-
-  if(otp != generatedOTP){
-    alert("Invalid OTP ❌");
-    btn.innerText = "Register";
-    btn.disabled = false;
-    return;
-  }
 
   try {
 
@@ -157,13 +164,6 @@ document.getElementById("form").addEventListener("submit", async function(e){
       email,
       phone,
       time: serverTimestamp()
-    });
-
-    // BACKEND CALL
-    await fetch("https://form-backend-new.onrender.com/submit",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({name,email,phone})
     });
 
     // SUCCESS PAGE
@@ -180,7 +180,6 @@ document.getElementById("form").addEventListener("submit", async function(e){
       </div>
     `;
 
-    // AUTO REDIRECT (3 sec)
     setTimeout(()=>{
       window.location.href="https://firmfluid.com";
     },3000);

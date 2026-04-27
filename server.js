@@ -11,8 +11,8 @@ console.log("Email:", email);
   // 📧 Email setup
   const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
+  port: 465,
+  secure: true,
   auth: {
     user: "firmfluid12@gmail.com",
     pass: "wbfrjhbeturwcpzg"
@@ -27,13 +27,12 @@ console.log("Email:", email);
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+  console.log("🚀 Sending email...");
+  const info = await transporter.sendMail(mailOptions);
+  console.log("✅ EMAIL SENT:", info.response);
 
-    // ✅ response same jaisa pehle tha (important)
-    res.json({ success: true });
-
-catch (error) {
-  console.log("EMAIL ERROR:", error);
+  res.json({ success: true }); // 🔥 lead flow safe
+} catch (error) {
+  console.log("❌ EMAIL ERROR:", error);
   res.json({ success: false });
 }
-});
