@@ -3,11 +3,9 @@ const cors = require("cors");
 
 const app = express();
 
-// ✅ IMPORTANT FIX
-app.use(cors({
-  origin: "*",   // allow all (for now)
-  methods: ["GET","POST"],
-}));
+// ✅ CORS FIX (FULL)
+app.use(cors());
+app.options("*", cors()); // 🔥 IMPORTANT LINE
 
 app.use(express.json());
 
@@ -22,7 +20,6 @@ app.post("/submit",(req,res)=>{
   res.json({success:true});
 });
 
-// START SERVER
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, ()=>{
   console.log("Server running on port", PORT);
