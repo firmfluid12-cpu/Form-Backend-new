@@ -10,12 +10,14 @@ console.log("Email:", email);
 
   // 📧 Email setup
   const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "firmfluid12@gmail.com",
-      pass: "wbfr jhbe turw cpzg"
-    }
-  });
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: "firmfluid12@gmail.com",
+    pass: "wbfrjhbeturwcpzg"
+  }
+});
 
   const mailOptions = {
     from: "firmfluid12@gmail.com",
@@ -30,8 +32,8 @@ console.log("Email:", email);
     // ✅ response same jaisa pehle tha (important)
     res.json({ success: true });
 
-  } catch (error) {
-    console.log(error);
-    res.json({ success: false });
-  }
+catch (error) {
+  console.log("EMAIL ERROR:", error);
+  res.json({ success: false });
+}
 });
