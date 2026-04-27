@@ -2,6 +2,7 @@ app.post("/submit", async (req, res) => {
   console.log("Lead:", req.body); // ✅ ye tumhara existing flow
 
   const { email } = req.body;
+console.log("Email:", email);
 
   // 🔢 OTP generate
   const otp = Math.floor(100000 + Math.random() * 900000);
